@@ -27,6 +27,8 @@ conda_path=$(which conda 2>/dev/null)
 # Check if conda is installed
 if [ -n "$conda_path" ]; then
 
+    log "Do conda clean --all --yes if using integrated module loads before running this script"
+    log "Do conda init --reverse --all if using integrated module loads before running this script"
     # Get the main conda directory
     grandparent_dir=$(dirname "$(dirname "$conda_path")")
     log "Backing up old conda envs..."
@@ -68,8 +70,9 @@ source ~/.bashrc
 # make sure that base environment is not active by default
 conda config --set auto_activate_base false
 
-# move the envs installation path to weka
-conda config --add envs_dirs $PREFIX/conda-environments
+# move the envs installation path to weka, removed because it breaks env naming in terminals
+# potential solution at https://github.com/romkatv/powerlevel10k/issues/762#issuecomment-633389123
+# conda config --add envs_dirs $PREFIX/.conda/environments
 
 # second source required for update to conda config file to take effect
 source ~/.bashrc
