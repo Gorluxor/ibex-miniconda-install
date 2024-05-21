@@ -29,6 +29,16 @@ if [ -n "$conda_path" ]; then
 
     log "Do conda clean --all --yes if using integrated module loads before running this script"
     log "Do conda init --reverse --all if using integrated module loads before running this script"
+    log "NOTE: After which you need to exit terminal and relog"
+    log "WARNING: If you see this message but have ran command above, you must run outside cached enviroment like VSCODE!!"
+    # Ask if we want to procede anyways without doing the above
+    read -p "Do you want to proceed without running the above commands? (y/n): " -n 1 -r
+    # if its not y or Y, exit
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo 'Negative confirmation Exiting...'
+        log "Negative confirmation Exiting..."
+        exit 1
+    fi
     # Get the main conda directory
     grandparent_dir=$(dirname "$(dirname "$conda_path")")
     log "Backing up old conda envs..."
