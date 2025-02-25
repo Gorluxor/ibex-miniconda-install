@@ -15,7 +15,11 @@ log "Miniforge3 installation script started"
 # Check if the directory /home/$USER exists     
 if [ ! -d "/home/$USER" ]; then
     echo "User account folder not found in local cluster"
-    exit 1
+    if [ "$0" = "$BASH_SOURCE" ]; then
+            exit 0  # if called by bash script
+        else
+            return 0  # if called by source script
+        fi
 fi
 
 # install Miniforge3 in user's WekaIO directory
