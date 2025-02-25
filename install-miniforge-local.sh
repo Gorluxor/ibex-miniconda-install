@@ -26,27 +26,46 @@ conda_path=$(which conda 2>/dev/null)
 
 # Check if conda is installed
 if [ -n "$conda_path" ]; then
-
-    log "Do conda clean --all --yes if using integrated module loads before running this script"
-    log "Do conda init --reverse --all if using integrated module loads before running this script"
-    log "NOTE: After which you need to exit terminal and relog"
-    log "WARNING: If you see this message but have ran command above, you must run outside cached enviroment like VSCODE!!"
-    # Ask if we want to procede anyways without doing the above
-    read -p "Do you want to proceed without running the above commands? (y/n): " -n 1 -r
+    grandparent_dir=$(dirname "$(dirname "$conda_path")")
+    echo "-----------------------------------------------------------"
+    echo "🔍 Detected Conda installation at: ${grandparent_dir}"
+    echo "⚡ You can manually clean up your paths and Conda environment by running:"
+    if [[ "$conda_path" != /sw/workstations* ]]; then
+        echo "   conda clean --all --yes      # Removes unused Conda files in old env"
+    fi
+    echo "   conda init --reverse --all   # Removes Conda paths if using integrated module loads"
+    echo "📝 IMPORTANT: After running the above commands, exit your terminal and log back in."
+    echo "⚠️  WARNING: VSCode terminals may cache paths, so if you continue seeing this message,"
+    echo "   try running the commands in a fresh terminal or via SSH."
+    echo "-----------------------------------------------------------"
+    echo "🚀 The following script section will attempt to remove the Conda installation"
+    echo ""
+    # zsh and bash safe way of doing it
+    printf >&2 '%s ' 'Recommended to run commands above, but you should work without it! Continue (y)? (y/n):'
+    read ans
+    
     # if its not y or Y, exit
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    if [[ ! $ans =~ ^[Yy]$ ]]; then
         echo 'Negative confirmation Exiting...'
         log "Negative confirmation Exiting..."
-        exit 1
+        if [ "$0" = "$BASH_SOURCE" ]; then
+            exit 0  # if called by bash script
+        else
+            return 0  # if called by source script
+        fi
     fi
-    # Get the main conda directory
-    grandparent_dir=$(dirname "$(dirname "$conda_path")")
-    log "Backing up old conda envs..."
-    cp -r $grandparent_dir/envs $PREFIX/conda_envs_backup
-    echo "Conda environments were backed up to $PREFIX/conda_envs_backup"
-    log "Backup done"
-    log "Deleting old conda version installed at: $grandparent_dir"
-    rm -rf "$grandparent_dir"
+    
+    # Check if the conda installation is from /sw/workstations
+    if [[ "$conda_path" == /sw/workstations* ]]; then
+        log "[INFO] Skipping deletion of default protected Conda from module load at $grandparent_dir"
+    else
+        log "Backing up old conda envs..."
+        cp -r "$grandparent_dir/envs" "$PREFIX/conda_envs_backup"
+        echo "Conda environments were backed up to $PREFIX/conda_envs_backup"
+        log "Backup done"
+        log "Deleting old conda version installed at: $grandparent_dir"
+        rm -rf "$grandparent_dir"
+    fi
 else
     log "No previous conda version installed, resuming..."
 fi
